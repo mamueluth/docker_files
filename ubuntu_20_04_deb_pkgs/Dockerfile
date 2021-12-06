@@ -23,14 +23,13 @@ RUN locale
 # Install basic utilities
 RUN apt-get -y update && apt-get -y install git nano screen ssh sudo tmux tree vim
 
-# install ROS2:foxy dependences
+# install ROS2:foxy dependencies
 RUN apt-get install -y curl gnupg2 lsb-release
 RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key  -o /usr/share/keyrings/ros-archive-keyring.gpg
 RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(source /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
 
-# install ROS2:foxy
-RUN apt-get update
-RUN DEBIAN_FRONTEND=noniteractive apt-get install -y ros-foxy-desktop
+# install ROS2:foxy, DEBIAN_FRONTEND is needed to ignore interactive keyboard layout setting while install
+RUN apt-get update -y && DEBIAN_FRONTEND=noniteractive apt-get install -y ros-foxy-desktop
 
 # setup environment of ros for usage
 RUN source /opt/ros/foxy/setup.bash
