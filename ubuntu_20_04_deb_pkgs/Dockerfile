@@ -38,12 +38,14 @@ RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/r
 RUN apt-get update -y && DEBIAN_FRONTEND=noniteractive apt-get install -y ros-foxy-desktop
 
 # clone user into docker image, add to sudo users needed for xsharing
+# the passwd delet is needed to update /etc/shadow otherwise user cannot use sudo
 RUN mkdir -p ${home} && \
   echo "${user}:x:${uid}:${gid}:${user},,,:${home}:/bin/bash" >> /etc/passwd && \
   echo "${user}:x:${uid}:" >> /etc/group && \
   echo "${user} ALL=(ALL) NOPASSWD: ALL" > "/etc/sudoers.d/${user}" && \
   chmod 0440 "/etc/sudoers.d/${user}" && \
   usermod -aG sudo ${user} && \
+  passwd -d ${user} && \
   chown ${uid}:${gid} -R ${home}
 
 # setup environment of ros for usage
