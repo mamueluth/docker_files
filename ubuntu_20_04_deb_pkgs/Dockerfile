@@ -46,9 +46,8 @@ RUN mkdir -p ${home} && \
   usermod -aG sudo ${user} && \
   chown ${uid}:${gid} -R ${home}
 
-#switch to user
-USER ${user}
-
 # setup environment of ros for usage
 RUN source /opt/ros/foxy/setup.bash
 
+#switch to user
+USER ${user}
