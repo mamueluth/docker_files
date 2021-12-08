@@ -1,5 +1,11 @@
 FROM ubuntu:20.04
 
+#Arguments maybe add defaults?
+ARG user
+ARG uid
+ARG gid
+ARG home
+
 # make bash default
 SHELL ["/bin/bash", "-c"] 
 
@@ -21,7 +27,7 @@ ENV LC_ALL en_US.UTF-8
 RUN locale
 
 # Install basic utilities
-RUN apt-get -y update && apt-get -y install git nano screen ssh sudo tmux tree vim
+RUN apt-get -y update && apt-get -y install firefox git nano screen ssh sudo tmux tree vim
 
 # install ROS2:foxy dependencies
 RUN apt-get install -y curl gnupg2 lsb-release
@@ -30,6 +36,18 @@ RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/r
 
 # install ROS2:foxy, DEBIAN_FRONTEND is needed to ignore interactive keyboard layout setting while install
 RUN apt-get update -y && DEBIAN_FRONTEND=noniteractive apt-get install -y ros-foxy-desktop
+
+# clone user into docker image, add to sudo users needed for xsharing
+RUN mkdir -p ${home} && \
+  echo "${user}:x:${uid}:${gid}:${user},,,:${home}:/bin/bash" >> /etc/passwd && \
+  echo "${user}:x:${uid}:" >> /etc/group && \
+  echo "${user} ALL=(ALL) NOPASSWD: ALL" > "/etc/sudoers.d/${user}" && \
+  chmod 0440 "/etc/sudoers.d/${user}" && \
+  usermod -aG sudo ${user} && \
+  chown ${uid}:${gid} -R ${home}
+
+#switch to user
+USER ${user}
 
 # setup environment of ros for usage
 RUN source /opt/ros/foxy/setup.bash
