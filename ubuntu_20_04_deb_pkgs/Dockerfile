@@ -34,8 +34,10 @@ RUN apt-get install -y curl gnupg2 lsb-release
 RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key  -o /usr/share/keyrings/ros-archive-keyring.gpg
 RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(source /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
 
-# install ROS2:foxy, DEBIAN_FRONTEND is needed to ignore interactive keyboard layout setting while install
-RUN apt-get update -y && DEBIAN_FRONTEND=noniteractive apt-get install -y ros-foxy-desktop
+# install ROS2:foxy and things needed for ros development, DEBIAN_FRONTEND is needed to ignore interactive keyboard layout setting while install
+RUN apt-get update -y && DEBIAN_FRONTEND=noniteractive apt-get install -y ros-foxy-desktop pip python3-colcon-common-extensions
+RUN pip install -U rosdep && \
+    rosdep init
 
 # clone user into docker image, add to sudo users needed for xsharing
 # the passwd delet is needed to update /etc/shadow otherwise user cannot use sudo
@@ -49,7 +51,8 @@ RUN mkdir -p ${home} && \
   chown ${uid}:${gid} -R ${home}
 
 # setup environment of ros for usage
-RUN source /opt/ros/foxy/setup.bash
+COPY bashrc ${home}/.bashrc
+RUN echo "source /opt/ros/foxy/setup.bash" >> ${home}/.bashrc
 
 #switch to user
 USER ${user}
